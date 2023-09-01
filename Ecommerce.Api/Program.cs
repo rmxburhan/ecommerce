@@ -1,9 +1,18 @@
 
+using Ecommerce.Api.Common;
+using Ecommerce.Api.models;
+using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+{
+    builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
+    builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+}
+builder.Services.AddDbContext<ApiDataContext>(options =>
+{
+    options.UseMySQL(builder.Configuration.GetSection("DatabaseSettings:MySql").Value);
+});
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
