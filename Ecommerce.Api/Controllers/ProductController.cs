@@ -100,6 +100,8 @@ public class ProductController : ControllerBase
             product.Image = hashedFilename;
         }
 
+        product.UpdatedAt = DateTime.UtcNow;
+
         dataContext.Products.Update(product);
         await dataContext.SaveChangesAsync();
 
