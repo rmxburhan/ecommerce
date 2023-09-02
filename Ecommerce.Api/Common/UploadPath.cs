@@ -14,4 +14,10 @@ public class UploadPath : IUploadPath
         string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", configuration.GetSection("UploadFolder:Image").Value);
         return imagePath;
     }
+
+    public string UserImageUploadPath()
+    {
+        string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "users", configuration.GetSection("UploadFolder:Image").Value);
+        return imagePath;
+    }
 }
