@@ -24,9 +24,9 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetMyProfile()
     {
         ClaimsPrincipal claims = HttpContext.User;
-        var email = claims.FindFirstValue(ClaimTypes.NameIdentifier);
+        var id = claims.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Email == email);
+        var user = await dataContext.Users.FindAsync(int.Parse(id));
 
         if (user == null)
             return NotFound();
@@ -38,8 +38,8 @@ public class UserController : ControllerBase
     public async Task<IActionResult> UpdateMyProfile(UpdateProfileRequest request)
     {
         ClaimsPrincipal claims = HttpContext.User;
-        var email = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Name == email);
+        var id = claims.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await dataContext.Users.FindAsync(int.Parse(id));
 
         if (user == null)
             return Unauthorized();
@@ -58,8 +58,8 @@ public class UserController : ControllerBase
     public async Task<IActionResult> UpdateMyProfilePicture(UpdateProfileImageRequest request)
     {
         ClaimsPrincipal claims = HttpContext.User;
-        var email = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Email == email);
+        var id = claims.FindFirstValue(ClaimTypes.NameIdentifier);
+        var user = await dataContext.Users.FindAsync(int.Parse(id));
 
         if (user == null)
             return NotFound();
