@@ -33,7 +33,7 @@ public class AuthController : ControllerBase
         if (user.Password != passwordHasher.HashPassword(request.Password))
             return Unauthorized();
 
-        var token = tokenGenerator.GenerateToken(user.Email);
+        var token = tokenGenerator.GenerateToken(user.Id.ToString());
         var response = new AuthenticationResponse(token, DateTime.Now.AddMinutes(10));
         return Ok(response);
     }
@@ -58,7 +58,7 @@ public class AuthController : ControllerBase
         dataContext.Users.Add(user);
         await dataContext.SaveChangesAsync();
 
-        var token = passwordHasher.HashPassword(user.Email);
+        var token = passwordHasher.HashPassword(user.Id.ToString());
         var response = new AuthenticationResponse(token, DateTime.Now.AddMinutes(10));
         return Ok(response);
     }
