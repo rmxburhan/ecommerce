@@ -26,6 +26,7 @@ public class AddressController : ControllerBase
         this.dataContext = dataContext;
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetAddresses()
     {
@@ -41,6 +42,7 @@ public class AddressController : ControllerBase
         return Ok(addreses);
     }
 
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetAdress(int id)
     {
@@ -57,6 +59,7 @@ public class AddressController : ControllerBase
         return Ok(addreses);
     }
 
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateAddress(UpdateAddressRequest request, int id)
     {
@@ -92,7 +95,7 @@ public class AddressController : ControllerBase
     }
 
 
-
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAddress(UpdateAddressRequest request, int id)
     {
@@ -110,9 +113,9 @@ public class AddressController : ControllerBase
         dataContext.Addresses.Remove(addreses);
         await dataContext.SaveChangesAsync();
 
-        return Ok(addreses);
+        return NoContent();
     }
-
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> AddAddress(AddAddressRequest request)
     {
@@ -130,7 +133,8 @@ public class AddressController : ControllerBase
             Notes = request.Notes,
             AddressType = request.AddressType,
             PhoneNumber = request.PhoneNumber,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            UserId = user.Id
         };
 
         if (request.Lat.HasValue && request.Lng.HasValue)
