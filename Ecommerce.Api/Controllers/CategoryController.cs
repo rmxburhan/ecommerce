@@ -23,7 +23,9 @@ public class CategoryController : ControllerBase
         var category = new Category
         {
             Name = request.CategoryName,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = null,
+            DeletedAt = null
         };
 
         dataContext.Categories.Add(category);
@@ -35,7 +37,7 @@ public class CategoryController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetCategories([FromQuery] FilterGetCategory filters)
     {
-        var categories = await dataContext.Categories.Where(x => (string.IsNullOrEmpty(filters.Name) || x.Name.Contains(filters.Name)) && x.DeletedAt == null).ToListAsync();
+        var categories = await dataContext.Categories.Where(x => (string.IsNullOrEmpty(filters.Name) || x.Name.Contains(filters.Name))).ToListAsync();
 
         return Ok(categories);
     }
@@ -43,10 +45,7 @@ public class CategoryController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetCategory(int id)
     {
-        var category = await dataContext.Categories.FindAsync(id);
-
-        if (category.DeletedAt != null)
-            return NotFound();
+        var category = await dataContext.Categories.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
         if (category == null)
             return NotFound();
@@ -85,6 +84,6 @@ public class CategoryController : ControllerBase
 
         await dataContext.SaveChangesAsync();
 
-        return Ok(category);
+        return NoContent();
     }
 }
