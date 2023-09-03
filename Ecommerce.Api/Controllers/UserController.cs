@@ -1,7 +1,9 @@
+using System.Linq;
 using System.Security.Claims;
 using Ecommerce.Api.Common;
 using Ecommerce.Api.dto.user;
 using Ecommerce.Api.models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +22,7 @@ public class UserController : ControllerBase
         this.uploadPath = uploadPath;
     }
 
+    [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> GetMyProfile()
     {
@@ -33,6 +36,7 @@ public class UserController : ControllerBase
 
         return Ok(user);
     }
+    [Authorize]
 
     [HttpPut("me")]
     public async Task<IActionResult> UpdateMyProfile(UpdateProfileRequest request)
@@ -54,8 +58,9 @@ public class UserController : ControllerBase
 
         return Ok(user);
     }
+    [Authorize]
     [HttpPut("me/photo")]
-    public async Task<IActionResult> UpdateMyProfilePicture(UpdateProfileImageRequest request)
+    public async Task<IActionResult> UpdateMyProfilePicture([FromForm] UpdateProfileImageRequest request)
     {
         ClaimsPrincipal claims = HttpContext.User;
         var id = claims.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -66,7 +71,7 @@ public class UserController : ControllerBase
 
         if (request.Photo != null)
         {
-            if (Directory.Exists(uploadPath.UserImageUploadPath()))
+            if (!Directory.Exists(uploadPath.UserImageUploadPath()))
                 Directory.CreateDirectory(uploadPath.UserImageUploadPath());
 
             string hashedFilename = Guid.NewGuid().ToString() + "_" + request.Photo.FileName;
