@@ -33,7 +33,7 @@ public class AuthController : ControllerBase
         if (user.Password != passwordHasher.HashPassword(request.Password))
             return Unauthorized();
 
-        var token = tokenGenerator.GenerateToken(user.Id.ToString());
+        var token = tokenGenerator.GenerateToken(user.Id.ToString().Trim());
         var response = new AuthenticationResponse(token, DateTime.Now.AddMinutes(10));
         return Ok(response);
     }
@@ -41,6 +41,10 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
+        var isExisting = await dataContext.Users.FirstOrDefaultAsync(x => x.Email == request.Email);
+        if (isExisting != null)
+            return BadRequest();
+
         var user = new User
         {
             Name = request.Name,
@@ -58,7 +62,7 @@ public class AuthController : ControllerBase
         dataContext.Users.Add(user);
         await dataContext.SaveChangesAsync();
 
-        var token = passwordHasher.HashPassword(user.Id.ToString());
+        var token = tokenGenerator.GenerateToken(user.Id.ToString());
         var response = new AuthenticationResponse(token, DateTime.Now.AddMinutes(10));
         return Ok(response);
     }
