@@ -56,21 +56,22 @@ public class StoreController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> UpdateStorePhoto(UpdatePhotoRequest request)
+    public async Task<IActionResult> UpdateStorePhoto([FromForm] UpdatePhotoRequest request)
     {
         var store = await dataContext.Stores.FirstOrDefaultAsync();
         if (request.Image != null)
         {
-            if (Directory.Exists(uploadPath.ImageUploadPath()))
-                Directory.CreateDirectory(uploadPath.ImageUploadPath());
+            if (!Directory.Exists(uploadPath.StoreImageUploadPath()))
+                Directory.CreateDirectory(uploadPath.StoreImageUploadPath());
 
             string hashedFilename = Guid.NewGuid().ToString() + "_" + request.Image.FileName;
-            string fileName = Path.Combine(uploadPath.ImageUploadPath(), hashedFilename);
+            string fileName = Path.Combine(uploadPath.StoreImageUploadPath(), hashedFilename);
 
             request.Image.CopyTo(new FileStream(fileName, FileMode.Create));
 
-            if (System.IO.File.Exists(Path.Combine(uploadPath.ImageUploadPath(), store.Image)))
-                System.IO.File.Delete(Path.Combine(uploadPath.ImageUploadPath(), store.Image));
+            if (store.Image != null)
+                if (System.IO.File.Exists(Path.Combine(uploadPath.StoreImageUploadPath(), store.Image)))
+                    System.IO.File.Delete(Path.Combine(uploadPath.StoreImageUploadPath(), store.Image));
 
             store.Image = hashedFilename;
             dataContext.Stores.Update(store);
