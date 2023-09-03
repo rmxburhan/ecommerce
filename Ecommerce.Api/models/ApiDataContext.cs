@@ -24,6 +24,14 @@ public class ApiDataContext : DbContext
         .HasIndex(db => db.Id)
         .IsUnique();
 
+        modelBuilder.Entity<Store>()
+        .HasData(new Store
+        {
+            Id = 1,
+            StoreName = "My STore",
+            Address = "My address",
+        });
+
         base.OnModelCreating(modelBuilder);
     }
 
