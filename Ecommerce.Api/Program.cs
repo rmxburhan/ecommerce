@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 {
     builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
     builder.Services.AddSingleton<IJwtTokenGenerator, JwtTokenGenerator>();
+    builder.Services.AddSingleton<IUploadPath, UploadPath>();
 }
 builder.Services.AddDbContext<ApiDataContext>(options =>
 {
@@ -61,6 +62,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
 
 app.UseAuthentication();
 
