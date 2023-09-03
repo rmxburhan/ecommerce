@@ -20,8 +20,8 @@ public class ProductController : ControllerBase
         this.uploadPath = uploadPath;
     }
 
-    [HttpGet]
-    public async Task<IActionResult> AddProduct(AddProductRequest request)
+    [HttpPost]
+    public async Task<IActionResult> AddProduct([FromForm] AddProductRequest request)
     {
         var product = new Product
         {
@@ -31,11 +31,11 @@ public class ProductController : ControllerBase
             CreatedAt = DateTime.UtcNow
         };
 
-        if (Directory.Exists(uploadPath.ImageUploadPath()))
-            Directory.CreateDirectory(uploadPath.ImageUploadPath());
+        if (!Directory.Exists(uploadPath.ProductImageUploadPath()))
+            Directory.CreateDirectory(uploadPath.ProductImageUploadPath());
 
         string hashedFilename = Guid.NewGuid().ToString() + "_" + request.Image.FileName;
-        string fileName = Path.Combine(uploadPath.ImageUploadPath(), hashedFilename);
+        string fileName = Path.Combine(uploadPath.ProductImageUploadPath(), hashedFilename);
 
         request.Image.CopyTo(new FileStream(fileName, FileMode.Create));
 
@@ -86,16 +86,16 @@ public class ProductController : ControllerBase
 
         if (request.Image != null)
         {
-            if (Directory.Exists(uploadPath.ImageUploadPath()))
-                Directory.CreateDirectory(uploadPath.ImageUploadPath());
+            if (Directory.Exists(uploadPath.ProductImageUploadPath()))
+                Directory.CreateDirectory(uploadPath.ProductImageUploadPath());
 
             string hashedFilename = Guid.NewGuid().ToString() + "_" + request.Image.FileName;
-            string fileName = Path.Combine(uploadPath.ImageUploadPath(), hashedFilename);
+            string fileName = Path.Combine(uploadPath.ProductImageUploadPath(), hashedFilename);
 
             request.Image.CopyTo(new FileStream(fileName, FileMode.Create));
 
-            if (System.IO.File.Exists(Path.Combine(uploadPath.ImageUploadPath(), product.Image)))
-                System.IO.File.Delete(Path.Combine(uploadPath.ImageUploadPath(), product.Image));
+            if (System.IO.File.Exists(Path.Combine(uploadPath.ProductImageUploadPath(), product.Image)))
+                System.IO.File.Delete(Path.Combine(uploadPath.ProductImageUploadPath(), product.Image));
 
             product.Image = hashedFilename;
         }

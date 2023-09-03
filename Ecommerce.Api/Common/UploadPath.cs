@@ -9,9 +9,16 @@ public class UploadPath : IUploadPath
         this.configuration = configuration;
     }
 
-    public string ImageUploadPath()
+
+    public string ProductImageUploadPath()
     {
-        string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", configuration.GetSection("UploadFolder:Image").Value);
+        string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "products", configuration.GetSection("UploadFolder:Image").Value);
+        return imagePath;
+    }
+
+    public string StoreImageUploadPath()
+    {
+        string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "store");
         return imagePath;
     }
 
