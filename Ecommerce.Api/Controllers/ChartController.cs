@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Ecommerce.Api.dto.chart;
 using Ecommerce.Api.dto.product;
 using Ecommerce.Api.models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,6 +24,7 @@ public class ChartController : ControllerBase
         this.dataContext = dataContext;
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetCharts()
     {
@@ -37,6 +39,7 @@ public class ChartController : ControllerBase
         return Ok(charts);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> AddChart(AddChartRequest request)
     {
@@ -61,6 +64,7 @@ public class ChartController : ControllerBase
         return Ok(chart);
     }
 
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateChart(UpdateChartRequest request, int id)
     {
@@ -88,6 +92,7 @@ public class ChartController : ControllerBase
         return Ok(chart);
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteChart(int id)
     {
@@ -105,6 +110,6 @@ public class ChartController : ControllerBase
         dataContext.Charts.Remove(chart);
         await dataContext.SaveChangesAsync();
 
-        return Ok(chart);
+        return NoContent();
     }
 }
