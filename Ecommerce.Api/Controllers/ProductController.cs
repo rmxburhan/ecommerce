@@ -1,9 +1,11 @@
 using Ecommerce.Api.Common;
 using Ecommerce.Api.dto.product;
 using Ecommerce.Api.models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Update;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Ecommerce.Api.Controllers;
 
@@ -20,6 +22,7 @@ public class ProductController : ControllerBase
         this.uploadPath = uploadPath;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> AddProduct([FromForm] AddProductRequest request)
     {
@@ -28,6 +31,7 @@ public class ProductController : ControllerBase
             Name = request.Name,
             Price = request.Price,
             CategoryId = request.CategoryId,
+            Description = request.Description,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -47,22 +51,22 @@ public class ProductController : ControllerBase
         return Ok(product);
     }
 
-    [HttpGet]
+    [Authorize, HttpGet]
     public async Task<IActionResult> GetProducts([FromQuery] FilterGetProduct filters)
     {
         var product = await dataContext.Products.OrderBy(x => x.Name).Where(x =>
         (string.IsNullOrEmpty(filters.Name) || x.Name.Contains(filters.Name)) &&
         (!filters.CategoryId.HasValue || x.CategoryId == filters.CategoryId) &&
-        ((filters.FromPrice.HasValue && filters.ToPrice.HasValue) ? (x.Price >= filters.FromPrice && x.Price <= filters.ToPrice) : true)
-        ).ToListAsync();
+        ((filters.FromPrice.HasValue ? x.Price >= filters.FromPrice : true) && (filters.ToPrice.HasValue ? x.Price <= filters.ToPrice : true)
+         && x.DeletedAt == null)).ToListAsync();
 
         return Ok(product);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetProduct(int id)
+    [Authorize, HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetProduct(Guid id)
     {
-        var product = await dataContext.Products.FindAsync(id);
+        var product = await dataContext.Products.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
         if (product == null)
             return NotFound();
@@ -70,10 +74,10 @@ public class ProductController : ControllerBase
         return Ok(product);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateProduct(UpdateProductRequest request, int id)
+    [Authorize, HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateProduct([FromForm] UpdateProductRequest request, Guid id)
     {
-        var product = await dataContext.Products.FindAsync(id);
+        var product = await dataContext.Products.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
         if (product == null)
             return NotFound();
@@ -81,8 +85,11 @@ public class ProductController : ControllerBase
         if (!string.IsNullOrEmpty(request.Name))
             product.Name = request.Name;
 
+        if (!string.IsNullOrEmpty(request.Description))
+            product.Name = request.Description;
+
         if (request.CategoryId.HasValue)
-            product.CategoryId = (int)request.CategoryId;
+            product.CategoryId = (Guid)request.CategoryId;
 
         if (request.Image != null)
         {
@@ -92,10 +99,11 @@ public class ProductController : ControllerBase
             string hashedFilename = Guid.NewGuid().ToString() + "_" + request.Image.FileName;
             string fileName = Path.Combine(uploadPath.ProductImageUploadPath(), hashedFilename);
 
-            request.Image.CopyTo(new FileStream(fileName, FileMode.Create));
+            request.Image.CopyTo(new FileStream(Path.Combine(uploadPath.ProductImageUploadPath(), fileName), FileMode.Create));
 
-            if (System.IO.File.Exists(Path.Combine(uploadPath.ProductImageUploadPath(), product.Image)))
-                System.IO.File.Delete(Path.Combine(uploadPath.ProductImageUploadPath(), product.Image));
+            if (!product.Image.IsNullOrEmpty())
+                if (System.IO.File.Exists(Path.Combine(uploadPath.ProductImageUploadPath(), product.Image)))
+                    System.IO.File.Delete(Path.Combine(uploadPath.ProductImageUploadPath(), product.Image));
 
             product.Image = hashedFilename;
         }
@@ -108,15 +116,16 @@ public class ProductController : ControllerBase
         return Ok(product);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteProduct(int id)
+    [Authorize, HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteProduct(Guid id)
     {
-        var product = await dataContext.Products.FindAsync(id);
+        var product = await dataContext.Products.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
         if (product == null)
             return NotFound();
 
-        dataContext.Products.Remove(product);
+        product.DeletedAt = DateTime.UtcNow;
+        dataContext.Products.Update(product);
         await dataContext.SaveChangesAsync();
         return NoContent();
     }

@@ -1,3 +1,4 @@
+using System.Net;
 using System.Security.AccessControl;
 using Ecommerce.Api.dto.category;
 using Ecommerce.Api.models;
@@ -17,15 +18,14 @@ public class CategoryController : ControllerBase
         this.dataContext = dataContext;
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateCategory(AddCategoryRequest request)
     {
         var category = new Category
         {
-            Name = request.CategoryName,
+            Name = request.Name,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = null,
-            DeletedAt = null
         };
 
         dataContext.Categories.Add(category);
@@ -34,16 +34,18 @@ public class CategoryController : ControllerBase
         return Ok(category);
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetCategories([FromQuery] FilterGetCategory filters)
     {
-        var categories = await dataContext.Categories.Where(x => (string.IsNullOrEmpty(filters.Name) || x.Name.Contains(filters.Name))).ToListAsync();
+        var categories = await dataContext.Categories.Where(x => (string.IsNullOrEmpty(filters.Name) || x.Name.Contains(filters.Name)) && x.DeletedAt == null).ToListAsync();
 
         return Ok(categories);
     }
 
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetCategory(int id)
+    [Authorize]
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetCategory(Guid id)
     {
         var category = await dataContext.Categories.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
@@ -53,9 +55,9 @@ public class CategoryController : ControllerBase
         return Ok(category);
     }
 
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateCategory(UpdateCategoryRequest request, int id)
+    [Authorize]
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateCategory(UpdateCategoryRequest request, Guid id)
     {
         var category = await dataContext.Categories.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
@@ -72,8 +74,9 @@ public class CategoryController : ControllerBase
         return Ok(category);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteCategory(int id)
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteCategory(Guid id)
     {
         var category = await dataContext.Categories.FirstOrDefaultAsync(x => x.Id == id && x.DeletedAt == null);
 
@@ -81,7 +84,7 @@ public class CategoryController : ControllerBase
             return NotFound();
 
         category.DeletedAt = DateTime.UtcNow;
-
+        dataContext.Categories.Update(category);
         await dataContext.SaveChangesAsync();
 
         return NoContent();

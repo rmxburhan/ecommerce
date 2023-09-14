@@ -27,7 +27,7 @@ public class ApiDataContext : DbContext
         modelBuilder.Entity<Store>()
         .HasData(new Store
         {
-            Id = 1,
+            Id = Guid.NewGuid(),
             StoreName = "My STore",
             Address = "My address",
         });
@@ -36,6 +36,7 @@ public class ApiDataContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<Admin> Admins { get; set; }
     public DbSet<Address> Addresses { get; set; }
     public DbSet<Category> Categories { get; set; }
     public DbSet<Product> Products { get; set; }

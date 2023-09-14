@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Security.AccessControl;
 using System;
 using System.Security.Claims;
 using Ecommerce.Api.dto.chart;
@@ -5,6 +7,7 @@ using Ecommerce.Api.dto.product;
 using Ecommerce.Api.models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Ecommerce.Api.Controllers;
 
@@ -23,55 +26,69 @@ public class ChartController : ControllerBase
         this.dataContext = dataContext;
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetCharts()
     {
         ClaimsPrincipal claims = HttpContext.User;
         var id = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FindAsync(int.Parse(id));
+        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id) && x.DeletedAt == null);
 
         if (user == null)
             return Unauthorized();
 
-        var charts = await dataContext.Charts.OrderBy(x => x.Product.Name).Where(x => x.UserId == int.Parse(id)).ToListAsync();
+        var charts = await dataContext.Charts.Include(x => x.Product).OrderBy(x => x.Product.Name).Where(x => x.UserId == Guid.Parse(id) && x.DeletedAt == null).ToListAsync();
         return Ok(charts);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> AddChart(AddChartRequest request)
     {
         ClaimsPrincipal claims = HttpContext.User;
         var id = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FindAsync(int.Parse(id));
+        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id) && x.DeletedAt == null);
 
         if (user == null)
             return Unauthorized();
 
-        var chart = new Chart
-        {
-            Qty = request.Qty,
-            ProductId = request.ProductId,
-            Notes = request.Notes,
-            UserId = int.Parse(id),
-            CreatedAt = DateTime.UtcNow
-        };
-        dataContext.Charts.Add(chart);
-        await dataContext.SaveChangesAsync();
+        var chartExisted = await dataContext.Charts.FirstOrDefaultAsync(x => x.ProductId == request.ProductId && x.DeletedAt == null);
 
-        return Ok(chart);
+        if (chartExisted != null)
+        {
+            chartExisted.Qty += request.Qty;
+            chartExisted.UpdatedAt = DateTime.UtcNow;
+            dataContext.Charts.Update(chartExisted);
+        }
+        else
+        {
+            chartExisted = new Chart
+            {
+                Qty = request.Qty,
+                ProductId = request.ProductId,
+                Notes = request.Notes,
+                UserId = user.Id,
+                CreatedAt = DateTime.UtcNow
+            };
+            dataContext.Charts.Add(chartExisted);
+        }
+
+        await dataContext.SaveChangesAsync();
+        return Ok(chartExisted);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateChart(UpdateChartRequest request, int id)
+    [Authorize]
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateChart(UpdateChartRequest request, Guid id)
     {
         ClaimsPrincipal claims = HttpContext.User;
         var id_user = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FindAsync(int.Parse(id_user));
+        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id_user) && x.DeletedAt == null);
 
         if (user == null)
             return Unauthorized();
 
-        var chart = await dataContext.Charts.FirstOrDefaultAsync(x => x.UserId == int.Parse(id_user) && x.Id == id);
+        var chart = await dataContext.Charts.Include(x => x.Product).FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == id && x.DeletedAt == null);
         if (chart == null)
             return NotFound();
 
@@ -79,32 +96,31 @@ public class ChartController : ControllerBase
             chart.Qty = (int)request.Qty;
         if (!String.IsNullOrEmpty(request.Notes))
             chart.Notes = request.Notes;
-        else
-            chart.Notes = "";
 
+        chart.UpdatedAt = DateTime.UtcNow;
         dataContext.Charts.Update(chart);
         await dataContext.SaveChangesAsync();
-
         return Ok(chart);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteChart(int id)
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteChart(Guid id)
     {
         ClaimsPrincipal claims = HttpContext.User;
         var id_user = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FindAsync(int.Parse(id_user));
+        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id_user) && x.DeletedAt == null);
 
         if (user == null)
             return Unauthorized();
 
-        var chart = await dataContext.Charts.FirstOrDefaultAsync(x => x.UserId == int.Parse(id_user) && x.Id == id);
+        var chart = await dataContext.Charts.FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == id && x.DeletedAt == null);
         if (chart == null)
             return NotFound();
 
-        dataContext.Charts.Remove(chart);
+        chart.DeletedAt = DateTime.UtcNow;
+        dataContext.Charts.Update(chart);
         await dataContext.SaveChangesAsync();
-
-        return Ok(chart);
+        return NoContent();
     }
 }

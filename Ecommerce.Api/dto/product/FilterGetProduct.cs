@@ -2,7 +2,7 @@ namespace Ecommerce.Api.dto.product;
 
 public record FilterGetProduct(
     string? Name,
-    int? CategoryId,
+    Guid? CategoryId,
     int? FromPrice,
     int? ToPrice
 );

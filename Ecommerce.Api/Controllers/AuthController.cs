@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequest request)
     {
-        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Email == request.Email);
+        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Email == request.Email && x.DeletedAt == null);
 
         if (user == null)
             return NotFound();
@@ -41,7 +41,8 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request)
     {
-        var isExisting = await dataContext.Users.FirstOrDefaultAsync(x => x.Email == request.Email);
+        var isExisting = await dataContext.Users.FirstOrDefaultAsync(x => x.Email == request.Email && x.DeletedAt == null);
+
         if (isExisting != null)
             return BadRequest();
 
@@ -51,7 +52,6 @@ public class AuthController : ControllerBase
             PhoneNumber = request.PhoneNumber,
             Email = request.Email,
             UserType = UserType.Customer,
-            UpdatedAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
 

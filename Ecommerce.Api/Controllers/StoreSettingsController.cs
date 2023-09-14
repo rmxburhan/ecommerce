@@ -2,6 +2,7 @@ using System.Net.Mime;
 using Ecommerce.Api.Common;
 using Ecommerce.Api.dto.store;
 using Ecommerce.Api.models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,7 @@ public class StoreController : ControllerBase
         this.uploadPath = uploadPath;
     }
 
+    [Authorize]
     [HttpGet]
     public async Task<IActionResult> GetStoreData()
     {
@@ -30,6 +32,7 @@ public class StoreController : ControllerBase
         return Ok(store);
     }
 
+    [Authorize]
     [HttpPut]
     public async Task<IActionResult> UpdateStoreData(UpdateStoreRequest request)
     {
@@ -49,13 +52,13 @@ public class StoreController : ControllerBase
         }
 
         store.UpdatedAt = DateTime.UtcNow;
-
         dataContext.Stores.Update(store);
         await dataContext.SaveChangesAsync();
         return Ok(store);
     }
 
-    [HttpPost]
+    [Authorize]
+    [HttpPost("photo")]
     public async Task<IActionResult> UpdateStorePhoto([FromForm] UpdatePhotoRequest request)
     {
         var store = await dataContext.Stores.FirstOrDefaultAsync();
@@ -74,6 +77,7 @@ public class StoreController : ControllerBase
                     System.IO.File.Delete(Path.Combine(uploadPath.StoreImageUploadPath(), store.Image));
 
             store.Image = hashedFilename;
+            store.UpdatedAt = DateTime.UtcNow;
             dataContext.Stores.Update(store);
             await dataContext.SaveChangesAsync();
             return Ok(store);
@@ -82,7 +86,5 @@ public class StoreController : ControllerBase
         {
             return BadRequest();
         }
-
     }
-
 }

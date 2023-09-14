@@ -32,45 +32,45 @@ public class AddressController : ControllerBase
     {
         ClaimsPrincipal claims = HttpContext.User;
         var id = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FindAsync(int.Parse(id));
+        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id) && x.DeletedAt == null);
 
         if (user == null)
             return Unauthorized();
 
-        var addreses = await dataContext.Addresses.Where(x => x.UserId == user.Id).ToListAsync();
+        var addreses = await dataContext.Addresses.Where(x => x.UserId == user.Id && x.DeletedAt == null).ToListAsync();
 
         return Ok(addreses);
     }
 
     [Authorize]
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetAdress(int id)
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetAdress(Guid id)
     {
         ClaimsPrincipal claims = HttpContext.User;
         var id_user = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FindAsync(int.Parse(id_user));
+        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id_user) && x.DeletedAt == null);
 
         if (user == null)
             return Unauthorized();
 
-        var addreses = await dataContext.Addresses.FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == id);
+        var addreses = await dataContext.Addresses.FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == id && x.DeletedAt == null);
         if (addreses == null)
             return NotFound();
         return Ok(addreses);
     }
 
     [Authorize]
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateAddress(UpdateAddressRequest request, int id)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateAddress(UpdateAddressRequest request, Guid id)
     {
         ClaimsPrincipal claims = HttpContext.User;
         var id_user = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FindAsync(int.Parse(id_user));
+        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id_user) && x.DeletedAt == null);
 
         if (user == null)
             return Unauthorized();
 
-        var addreses = await dataContext.Addresses.FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == id);
+        var addreses = await dataContext.Addresses.FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == id && x.DeletedAt == null);
         if (addreses == null)
             return NotFound();
 
@@ -96,32 +96,33 @@ public class AddressController : ControllerBase
 
 
     [Authorize]
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteAddress(UpdateAddressRequest request, int id)
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteAddress(UpdateAddressRequest request, Guid id)
     {
         ClaimsPrincipal claims = HttpContext.User;
         var id_user = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FindAsync(int.Parse(id_user));
+        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id_user) && x.DeletedAt == null);
 
         if (user == null)
             return Unauthorized();
 
-        var addreses = await dataContext.Addresses.FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == id);
+        var addreses = await dataContext.Addresses.FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == id && x.DeletedAt == null);
         if (addreses == null)
             return NotFound();
 
-        dataContext.Addresses.Remove(addreses);
+        addreses.DeletedAt = DateTime.UtcNow;
+        dataContext.Addresses.Update(addreses);
         await dataContext.SaveChangesAsync();
-
         return NoContent();
     }
+
     [Authorize]
     [HttpPost]
     public async Task<IActionResult> AddAddress(AddAddressRequest request)
     {
         ClaimsPrincipal claims = HttpContext.User;
         var id_user = claims.FindFirstValue(ClaimTypes.NameIdentifier);
-        var user = await dataContext.Users.FindAsync(int.Parse(id_user));
+        var user = await dataContext.Users.FirstOrDefaultAsync(x => x.Id == Guid.Parse(id_user) && x.DeletedAt == null);
 
         if (user == null)
             return Unauthorized();
@@ -133,8 +134,8 @@ public class AddressController : ControllerBase
             Notes = request.Notes,
             AddressType = request.AddressType,
             PhoneNumber = request.PhoneNumber,
-            CreatedAt = DateTime.UtcNow,
-            UserId = user.Id
+            UserId = user.Id,
+            CreatedAt = DateTime.UtcNow
         };
 
         if (request.Lat.HasValue && request.Lng.HasValue)
@@ -143,7 +144,7 @@ public class AddressController : ControllerBase
             address.Lng = request.Lng;
         }
 
-        dataContext.Addresses.Update(address);
+        dataContext.Addresses.Add(address);
         await dataContext.SaveChangesAsync();
 
         return Ok(address);

@@ -1,0 +1,23 @@
+POST http://localhost:8080/api/Transaction 
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjEiLCJleHAiOjE2OTQ0OTkzNTQsImlzcyI6IlJteGJ1cmhhbiIsImF1ZCI6IlJteGJ1cmhhbiJ9.VcvSzqLRate3vhuVQBjwSdMBZ1dae-MQgqmMS7awhwndg_CJREUfnW58iRG9cO62Rcqf5eofYJpdqal3wXvuGA
+
+{
+    "addressId" : 1,
+    "cartId" : [
+        9
+    ]
+}
+
+###
+POST http://localhost:8080/api/auth/login    
+Content-Type: application/json
+
+{
+    "email" : "string",
+    "password" : "string"
+}
+
+
+###
+POST https://api.xendit.co/qr_codes
