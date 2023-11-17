@@ -1,3 +1,5 @@
 namespace Ecommerce.Api.dto.category;
 
-public record UpdateCategoryRequest(string Name);
+public record UpdateCategoryRequest(
+    string Name
+);
