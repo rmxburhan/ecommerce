@@ -16,7 +16,7 @@ namespace Ecommerce.Api.Controllers;
 /// so filter to the specific user by id found in token
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/charts")]
 public class ChartController : ControllerBase
 {
     private readonly ApiDataContext dataContext;

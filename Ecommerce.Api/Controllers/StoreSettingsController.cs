@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Ecommerce.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]/settings")]
+[Route("api/store/settings")]
 public class StoreController : ControllerBase
 {
     private readonly ApiDataContext dataContext;

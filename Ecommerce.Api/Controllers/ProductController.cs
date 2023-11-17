@@ -10,7 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Ecommerce.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/products")]
 public class ProductController : ControllerBase
 {
     private readonly ApiDataContext dataContext;

@@ -16,7 +16,7 @@ using Swashbuckle.AspNetCore.Filters;
 /// </summary>
 namespace Ecommerce.Api.Controllers;
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/addresses")]
 public class AddressController : ControllerBase
 {
     private readonly ApiDataContext dataContext;

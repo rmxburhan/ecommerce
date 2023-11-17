@@ -14,7 +14,7 @@ namespace Ecommerce.Api.Controllers;
 /// This endpoint is for admin only
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/transactions")]
 public class TransactionController : ControllerBase
 {
     private readonly ApiDataContext dataContext;

@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace Ecommerce.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/users")]
 public class UserController : ControllerBase
 {
     private readonly ApiDataContext dataContext;
