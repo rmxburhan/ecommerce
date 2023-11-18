@@ -7,8 +7,8 @@ public class Address
     public string Label { get; set; } = string.Empty;
     public string FullAddress { get; set; } = string.Empty;
     public string? Notes { get; set; } = string.Empty;
-    public Double? Lat { get; set; }
-    public Double? Lng { get; set; }
+    public double? Lat { get; set; }
+    public double? Lng { get; set; }
     public AddressType AddressType { get; set; }
     public string PhoneNumber { get; set; } = string.Empty;
     public Guid UserId { get; set; }
